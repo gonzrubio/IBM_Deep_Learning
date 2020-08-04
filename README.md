@@ -3,12 +3,12 @@ Lecture notes and labs from [edX professional certificate](https://www.edx.org/p
 
 ## Courses in this program
 
-# Deep Learning Fundamentals with Keras
+* Deep Learning Fundamentals with Keras
 
-# Deep Learning with Python and PyTorch
+* Deep Learning with Python and PyTorch
 
-# Deep Learning with Tensorflow
+* Deep Learning with Tensorflow
 
-# Using GPUs to Scale and Speed-up Deep Learning
+* Using GPUs to Scale and Speed-up Deep Learning
 
-# Applied Deep Learning Capstone
+* Applied Deep Learning Capstone
