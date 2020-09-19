@@ -3,7 +3,7 @@
 Shallow Neural Networks
 Neural Networks in one dimension
 
-2 layer model
+One hidden layer with two neurons
 """
 
 
