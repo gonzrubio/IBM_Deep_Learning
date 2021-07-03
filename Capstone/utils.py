@@ -65,6 +65,14 @@ if __name__ == '__main__':
         plt.show()
         print(Y)
 
+    samples = [22, 32, 45]
+    for sample in samples:
+        X, Y = train_dataset[sample]
+        plt.imshow(X)
+        plt.title(f"label: {Y}")
+        plt.show()
+        print(Y)
+
     # Create a test_normalization dataset to see if the transform is correct.
     # Use the training dataset.
     mean = [0.485, 0.456, 0.406]
