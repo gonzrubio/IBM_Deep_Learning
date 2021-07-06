@@ -6,15 +6,18 @@ Created on Sat Jul  3 11:04:52 2021
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 
 from torchvision import transforms
 from torchvision.models import resnet18
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 from utils import DenominationsData
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cpu"
 
 ##############################################################################
 #                                                                            #
@@ -44,6 +47,7 @@ validation_dataset = DenominationsData(val_csv_file, val_dir, transform=composed
 ##############################################################################
 
 model = resnet18(pretrained=True)
+model = model.to(device)
 
 for param in model.parameters():
     param.requires_grad = False
@@ -52,11 +56,13 @@ for param in model.parameters():
 # a nn.Linear object, to classify 7 different bills. For the parameters
 # in_features  remember the last hidden layer has 512 neurons.
 
-fc = torch.empty(size=(512, 7))
-fc = nn.init.kaiming_uniform_(fc, mode='fan_in', nonlinearity='relu')
-model.fc = nn.Parameter(fc)
-# model.fc = nn.Linear(512, 7)
-
+# fc = torch.empty(size=(512, 7))
+# fc = nn.init.kaiming_uniform_(fc, mode='fan_in', nonlinearity='relu')
+# model.fc = nn.Parameter(fc)
+model.fc = nn.Linear(512, 7)
+# for param in model.parameters():
+#     if param.requires_grad:
+#         print(f"{param})")
 
 ##############################################################################
 #                                                                            #
@@ -74,7 +80,6 @@ training_loader = DataLoader(train_dataset, batch_size=10, shuffle=False,
 trainable_params = [p for p in model.parameters() if p.requires_grad]
 optimizer = optim.Adam(trainable_params, lr=1e-3)
 scheduler = CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
-
 epochs = 20
 
 
@@ -88,19 +93,21 @@ correct = 0
 loss = []       # Per epoch
 accuracy = []   # " "
 
-for epoch in range(epochs):
+for epoch in tqdm(range(epochs)):
 
-    loss_batch = 0.0
+    loss_epoch = 0.0
     for batch, (x, y) in enumerate(training_loader):
         x = x.to(device)
         y = y.to(device)
-        loss_batch += criterion(model(x), y).item()
+        loss_batch = criterion(model(x), y)
+        loss_epoch += loss_batch.item()
 
         optimizer.zero_grad()
         loss_batch.backward()
         optimizer.step()
         scheduler.step()
 
+    loss.append(loss_epoch / 10)
     loss.append
 
 
