@@ -4,16 +4,15 @@ Created on Sat Jul  3 11:04:52 2021
 @author: gonzr
 """
 
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
 from torchvision import transforms
 from torchvision.models import resnet18
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
-# from tqdm import tqdm
 from utils import DenominationsData
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -120,25 +119,12 @@ for epoch in range(epochs):
     print(f"Epoch: {epoch} accuracy: {accuracy[-1]}")
 
 
+plt.plot(loss)
+plt.title("loss")
+plt.xlabel("epoch")
+plt.show()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plt.plot(accuracy)
+plt.title("accuracy")
+plt.xlabel("epoch")
+plt.show()
