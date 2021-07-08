@@ -13,11 +13,11 @@ from torchvision import transforms
 from torchvision.models import resnet18
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+# from tqdm import tqdm
 from utils import DenominationsData
 
-# device = "cuda:0" if torch.cuda.is_available() else "cpu"
-device = "cpu"
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# device = "cpu"
 
 ##############################################################################
 #                                                                            #
@@ -35,7 +35,7 @@ train_dir = 'data/training/'
 train_csv_file = 'data/training/training_labels.csv'
 train_dataset = DenominationsData(train_csv_file, train_dir, transform=composed)
 
-val_dir = 'data/training/'
+val_dir = 'data/validation/'
 val_csv_file = 'data/validation/validation_labels.csv'
 validation_dataset = DenominationsData(val_csv_file, val_dir, transform=composed)
 
@@ -47,7 +47,6 @@ validation_dataset = DenominationsData(val_csv_file, val_dir, transform=composed
 ##############################################################################
 
 model = resnet18(pretrained=True)
-model = model.to(device)
 
 for param in model.parameters():
     param.requires_grad = False
@@ -55,14 +54,8 @@ for param in model.parameters():
 # Replace the output layer model.fc of the neural network with
 # a nn.Linear object, to classify 7 different bills. For the parameters
 # in_features  remember the last hidden layer has 512 neurons.
-
-# fc = torch.empty(size=(512, 7))
-# fc = nn.init.kaiming_uniform_(fc, mode='fan_in', nonlinearity='relu')
-# model.fc = nn.Parameter(fc)
 model.fc = nn.Linear(512, 7)
-# for param in model.parameters():
-#     if param.requires_grad:
-#         print(f"{param})")
+model.to(device)
 
 ##############################################################################
 #                                                                            #
@@ -70,16 +63,18 @@ model.fc = nn.Linear(512, 7)
 #                                                                            #
 ##############################################################################
 
+train_bsize = 10
+val_bsize = 15
 criterion = nn.CrossEntropyLoss()
 
-training_loader = DataLoader(train_dataset, batch_size=15, shuffle=True,
-                             num_workers=2, pin_memory=True)
-training_loader = DataLoader(train_dataset, batch_size=10, shuffle=False,
-                             num_workers=2, pin_memory=True)
+training_loader = DataLoader(train_dataset, batch_size=val_bsize, shuffle=True,
+                             pin_memory=True)
+validation_loader = DataLoader(validation_dataset, batch_size=train_bsize,
+                               shuffle=False, pin_memory=True)
 
 trainable_params = [p for p in model.parameters() if p.requires_grad]
 optimizer = optim.Adam(trainable_params, lr=1e-3)
-scheduler = CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+scheduler = CosineAnnealingLR(optimizer, T_max=7, eta_min=0)
 epochs = 20
 
 
@@ -89,16 +84,17 @@ epochs = 20
 #                                                                            #
 ##############################################################################
 
-correct = 0
 loss = []       # Per epoch
 accuracy = []   # " "
 
-for epoch in tqdm(range(epochs)):
+for epoch in range(epochs):
 
+    # Training
     loss_epoch = 0.0
     for batch, (x, y) in enumerate(training_loader):
         x = x.to(device)
         y = y.to(device)
+        # model.to(device)
         loss_batch = criterion(model(x), y)
         loss_epoch += loss_batch.item()
 
@@ -106,9 +102,22 @@ for epoch in tqdm(range(epochs)):
         loss_batch.backward()
         optimizer.step()
         scheduler.step()
+        print(f"{epoch}.{batch} {loss_batch.item()}")
+    loss.append(loss_epoch / len(training_loader))
 
-    loss.append(loss_epoch / 10)
-    loss.append
+    # Validation
+    with torch.no_grad():
+        model.eval()
+        correct = 0
+        for batch, (x, y) in enumerate(validation_loader):
+            x = x.to(device)
+            y = y.to(device)
+            # model.to(device)
+            y_hat = model(x).max(dim=1)[1]
+            correct += (y_hat == y).sum().item()
+        accuracy.append(correct / len(validation_dataset))
+        model.train()
+    print(f"Epoch: {epoch} accuracy: {accuracy[-1]}")
 
 
 
