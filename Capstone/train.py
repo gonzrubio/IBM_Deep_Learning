@@ -120,11 +120,11 @@ for epoch in range(epochs):
 
 
 plt.plot(loss)
-plt.title("loss")
+plt.ylabel("Average loss")
 plt.xlabel("epoch")
 plt.show()
 
 plt.plot(accuracy)
-plt.title("accuracy")
+plt.ylabel("accuracy")
 plt.xlabel("epoch")
 plt.show()
