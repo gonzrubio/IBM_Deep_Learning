@@ -236,5 +236,5 @@ plt.ylabel("accuracy")
 plt.xlabel("epoch")
 plt.show()
 
-torch.save(model, "resnet18_pytorch.pt")
-torch.save(model_des, "densenet121_pytorch.pt")
+torch.save(model.state_dict(), "resnet18.pt")
+torch.save(model_des.state_dict(), "densenet121.pt")
